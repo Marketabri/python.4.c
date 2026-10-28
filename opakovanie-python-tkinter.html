@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opakovanie Python a Tkinter</title>
+<style>
+  :root {
+    --bg: #eef2f3;
+    --card: #ffffff;
+    --ink: #13252b;
+    --muted: #5a6b70;
+    --dark: #0d2b33;
+    --accent: #0f6b74;
+    --accent-soft: #e2f0f1;
+    --line: #d8e1e3;
+    --code-bg: #0f2a31;
+    --code-ink: #e6f1f2;
+    --warn: #b4232c;
+    --mono: Consolas, "SFMono-Regular", Menlo, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.45;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+  header.hero {
+    background: linear-gradient(120deg, #0b2229, #0f4f58 70%, #137a84);
+    color: #fff;
+    padding: 36px 0 28px;
+  }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .75; }
+  .hero h1 { margin: 6px 0 10px; font-size: clamp(26px, 5vw, 38px); line-height: 1.15; }
+  .hero p { margin: 0; max-width: 620px; opacity: .9; }
+  .stats { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.18); }
+  .stats b { display: block; font-size: 22px; }
+  .stats span { font-family: var(--mono); font-size: 12px; opacity: .75; }
+
+  .start-card { margin-top: 24px; display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .field label { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; opacity: .75; margin-bottom: 4px; }
+  .field input {
+    width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,.5);
+    color: #fff; font-size: 16px; padding: 6px 2px; outline: none;
+  }
+  .field input:focus { border-bottom-color: #fff; }
+  .field input:disabled { opacity: .8; }
+
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(255,255,255,.96); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar .wrap { display: flex; align-items: center; gap: 14px; padding-top: 10px; padding-bottom: 10px; }
+  .timer { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--accent); min-width: 72px; }
+  .timer.low { color: var(--warn); }
+  .progress { flex: 1; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .track { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+
+  button {
+    font: inherit; font-weight: 600; border: none; border-radius: 8px;
+    padding: 10px 18px; cursor: pointer; background: var(--accent); color: #fff;
+  }
+  button:hover { filter: brightness(1.1); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.big { font-size: 17px; padding: 13px 26px; }
+
+  main { padding: 24px 0 40px; }
+  .intro-card, .result {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px; margin-bottom: 24px;
+  }
+  .intro-card ul { margin: 8px 0 18px; padding-left: 20px; }
+  .intro-card li { margin-bottom: 4px; }
+  .msg { color: var(--warn); font-size: 14px; margin-top: 10px; min-height: 1em; }
+
+  .result { text-align: center; border-color: var(--accent); }
+  .result .score { font-size: clamp(44px, 10vw, 64px); font-weight: 800; color: var(--accent); line-height: 1.1; }
+  .result .who { color: var(--muted); font-family: var(--mono); font-size: 13px; margin-top: 8px; }
+  .result .note { margin-top: 12px; }
+
+  section.sec { margin-bottom: 32px; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; border-bottom: 2px solid var(--dark); padding-bottom: 6px; }
+  .sec-head .letter { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+  .sec-head h2 { margin: 0; font-size: 20px; flex: 1; }
+  .sec-head .cnt { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px; color: var(--muted); }
+  .sec-desc { color: var(--muted); font-size: 14px; margin: 8px 0 14px; }
+
+  .q {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 12px;
+  }
+  .q.answered { border-left-color: var(--accent); }
+  .q-head { display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px; }
+  .num { font-family: var(--mono); font-size: 12px; font-weight: 700; background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+  .q-title { font-weight: 600; }
+
+  pre.code {
+    margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: 8px;
+    padding: 12px 14px; font-family: var(--mono); font-size: 14px; line-height: 1.55;
+    overflow-x: auto; white-space: pre;
+  }
+  pre.code input {
+    font-family: var(--mono); font-size: 14px; width: 9.5em;
+    background: #1f4a54; color: #fff; border: 1px dashed #7fb7bd; border-radius: 4px;
+    padding: 1px 6px; outline: none; text-align: center;
+  }
+  pre.code input:focus { border-style: solid; border-color: #bfe6ea; }
+
+  .out-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; align-items: start; }
+  .out-label { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--muted); margin-bottom: 4px; }
+  .out-grid input, .word input {
+    width: 100%; font-family: var(--mono); font-size: 15px; padding: 9px 10px;
+    border: 1px solid var(--line); border-radius: 6px; background: #f6f9f9; outline: none;
+  }
+  .out-grid input:focus, .word input:focus { border-color: var(--accent); background: #fff; }
+  .word { line-height: 2.1; }
+  .word input { display: inline-block; width: 11em; padding: 4px 8px; font-size: 14px; }
+
+  .opts { display: grid; gap: 8px; }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; background: #f4f7f7; border: 1px solid transparent;
+    border-radius: 8px; padding: 9px 12px; cursor: pointer;
+  }
+  .opt:hover { border-color: var(--line); }
+  .opt input { margin-top: 4px; accent-color: var(--accent); }
+  .opt.sel { background: var(--accent-soft); border-color: var(--accent); }
+
+  input:disabled { opacity: .85; cursor: not-allowed; }
+  .finish { text-align: center; padding: 10px 0 20px; }
+  footer { text-align: center; font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 20px 0 40px; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 640px) {
+    .start-card { grid-template-columns: 1fr; }
+    .out-grid { grid-template-columns: 1fr; }
+    .stats { gap: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Programovanie · opakovanie</div>
+    <h1>Opakovanie: Python a Tkinter</h1>
+    <p>Test z celého opakovania Pythonu a z prebratých tém Tkinteru. Väčšinou dopĺňaš odpoveď do políčka, niekde vyberáš jednu možnosť.</p>
+    <div class="stats">
+      <div><b id="st-q">70</b><span>otázok</span></div>
+      <div><b id="st-p">70</b><span>bodov</span></div>
+      <div><b>40</b><span>minút</span></div>
+    </div>
+    <div class="start-card">
+      <div class="field"><label for="meno">Meno a priezvisko</label><input id="meno" autocomplete="off"></div>
+      <div class="field"><label for="trieda">Trieda</label><input id="trieda" autocomplete="off"></div>
+    </div>
+  </div>
+</header>
+
+<div class="bar hidden" id="bar">
+  <div class="wrap">
+    <div class="timer" id="timer">40:00</div>
+    <div class="progress"><span id="prog-txt">0 / 70</span><div class="track"><div class="fill" id="prog-fill"></div></div></div>
+    <button id="btn-finish-top">Odovzdať</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="intro-card" id="intro">
+    <h2 style="margin-top:0">Pred začiatkom</h2>
+    <ul>
+      <li>Na test máš <b>40 minút</b>. Čas beží od kliknutia na <i>Začať test</i>.</li>
+      <li>Po uplynutí času sa test <b>odovzdá automaticky</b>.</li>
+      <li>Každá otázka má <b>1 bod</b>. Na konci uvidíš, koľko bodov si získal.</li>
+      <li>Pri výstupoch programu píš presne to, čo sa zobrazí. Na veľkých a malých písmenách záleží.</li>
+      <li>Pracuj samostatne, bez AI a bez spúšťania kódu.</li>
+    </ul>
+    <button class="big" id="btn-start">Začať test</button>
+    <div class="msg" id="start-msg"></div>
+  </div>
+
+  <div class="result hidden" id="result">
+    <div class="eyebrow" style="color:var(--muted)">Výsledok</div>
+    <div class="score" id="res-score">0 / 70</div>
+    <div class="who" id="res-who"></div>
+    <div class="note" id="res-note"></div>
+  </div>
+
+  <div id="quiz" class="hidden"></div>
+
+  <div class="finish hidden" id="finish-wrap">
+    <button class="big" id="btn-finish">Odovzdať test</button>
+  </div>
+</main>
+
+<footer>Spojená škola Nižná · Programovanie</footer>
+
+<script>
+const DATA = {"salt": "ssn-pytk-2026", "sections": [{"id": "A", "title": "Python – čo program vypíše", "desc": "Napíš presne to, čo sa zobrazí na obrazovke. Na veľkých a malých písmenách záleží, medzery na začiatku a na konci sa nepočítajú.", "count": 22}, {"id": "B", "title": "Python – doplň do kódu a teória", "desc": "Do políčka patrí jedno slovo alebo hodnota. Pri otázkach s možnosťami vyber jednu.", "count": 7}, {"id": "C", "title": "Tkinter – premenné a hodnoty", "desc": "Napíš, akú hodnotu program vypíše. Predpokladaj, že na začiatku je import tkinter as tk, from tkinter import messagebox a root = tk.Tk().", "count": 8}, {"id": "D", "title": "Tkinter – doplň do kódu", "desc": "Doplň chýbajúce slovo tak, aby riadok robil to, čo je nad ním napísané. Úvodzovky ani zátvorky nedopisuj, ak už v kóde sú.", "count": 28}, {"id": "E", "title": "Tkinter – teória", "desc": "Vyber jednu správnu možnosť.", "count": 5}], "questions": [{"id": "q1", "n": 1, "sec": "A", "kind": "out", "prompt": "Celočíselné delenie", "code": "print(7 // 2)", "mode": "out", "h": ["fdb9298"]}, {"id": "q2", "n": 2, "sec": "A", "kind": "out", "prompt": "Zvyšok po delení", "code": "print(7 % 3)", "mode": "out", "h": ["383d71b3"]}, {"id": "q3", "n": 3, "sec": "A", "kind": "out", "prompt": "Podmienka if / elif / else", "code": "x = 15\nif x > 10 and x < 20:\n    print(\"A\")\nelif x > 5:\n    print(\"B\")\nelse:\n    print(\"C\")", "mode": "out", "h": ["64d456c8"]}, {"id": "q4", "n": 4, "sec": "A", "kind": "out", "prompt": "Delenie", "code": "print(10 / 4)", "mode": "out", "h": ["5ae2f461"]}, {"id": "q5", "n": 5, "sec": "A", "kind": "out", "prompt": "Násobenie reťazca", "code": "x = \"5\"\nprint(x * 3)", "mode": "out", "h": ["2a842f0c"]}, {"id": "q6", "n": 6, "sec": "A", "kind": "out", "prompt": "Indexovanie reťazca", "code": "s = \"Python\"\nprint(s[0], s[-1])", "mode": "out", "h": ["3278683e"]}, {"id": "q7", "n": 7, "sec": "A", "kind": "out", "prompt": "Výrez reťazca", "code": "s = \"Python\"\nprint(s[1:4])", "mode": "out", "h": ["9ac38740"]}, {"id": "q8", "n": 8, "sec": "A", "kind": "out", "prompt": "Dĺžka reťazca", "code": "print(len(\"Ahoj svet\"))", "mode": "out", "h": ["4175061"]}, {"id": "q9", "n": 9, "sec": "A", "kind": "out", "prompt": "Metóda reťazca", "code": "print(\"ahoj\".upper())", "mode": "out", "h": ["9a82d69f"]}, {"id": "q10", "n": 10, "sec": "A", "kind": "out", "prompt": "Rozdelenie reťazca", "code": "print(\"a,b,c\".split(\",\"))", "mode": "code", "h": ["c5aa39cd"]}, {"id": "q11", "n": 11, "sec": "A", "kind": "out", "prompt": "f-reťazec", "code": "meno = \"Eva\"\nvek = 16\nprint(f\"{meno} má {vek} rokov\")", "mode": "out", "h": ["940879ee"]}, {"id": "q12", "n": 12, "sec": "A", "kind": "out", "prompt": "Cyklus for a range", "code": "for i in range(3):\n    print(i, end=\" \")", "mode": "out", "h": ["75c09560"]}, {"id": "q13", "n": 13, "sec": "A", "kind": "out", "prompt": "range s krokom", "code": "print(list(range(2, 10, 3)))", "mode": "code", "h": ["89a8dd13"]}, {"id": "q14", "n": 14, "sec": "A", "kind": "out", "prompt": "Súčet v cykle", "code": "sucet = 0\nfor i in range(1, 5):\n    sucet += i\nprint(sucet)", "mode": "out", "h": ["eba1cc"]}, {"id": "q15", "n": 15, "sec": "A", "kind": "out", "prompt": "Cyklus while", "code": "n = 0\nwhile n < 10:\n    n += 3\nprint(n)", "mode": "out", "h": ["f79af027"]}, {"id": "q16", "n": 16, "sec": "A", "kind": "out", "prompt": "Príkaz break", "code": "for i in range(10):\n    if i == 4:\n        break\n    print(i, end=\"\")", "mode": "out", "h": ["5a4c9253"]}, {"id": "q17", "n": 17, "sec": "A", "kind": "out", "prompt": "Pridanie do zoznamu", "code": "z = [3, 1, 2]\nz.append(5)\nprint(len(z))", "mode": "out", "h": ["e5781dbe"]}, {"id": "q18", "n": 18, "sec": "A", "kind": "out", "prompt": "Zoradenie zoznamu", "code": "z = [3, 1, 2]\nz.sort()\nprint(z)", "mode": "code", "h": ["ad296d05"]}, {"id": "q19", "n": 19, "sec": "A", "kind": "out", "prompt": "Operátor in", "code": "print(5 in [1, 2, 3])", "mode": "out", "h": ["cd89956b"]}, {"id": "q20", "n": 20, "sec": "A", "kind": "out", "prompt": "Slovník", "code": "d = {\"meno\": \"Jan\", \"vek\": 17}\nprint(d[\"vek\"])", "mode": "out", "h": ["86510374"]}, {"id": "q21", "n": 21, "sec": "A", "kind": "out", "prompt": "Funkcia s predvolenou hodnotou", "code": "def f(a, b=2):\n    return a * b\n\nprint(f(3))", "mode": "out", "h": ["5cb98bb5"]}, {"id": "q22", "n": 22, "sec": "A", "kind": "out", "prompt": "Zachytenie chyby", "code": "try:\n    cislo = int(\"abc\")\nexcept ValueError:\n    print(\"chyba\")", "mode": "out", "h": ["3040f21d"]}, {"id": "q23", "n": 23, "sec": "B", "kind": "fill", "prompt": "Načítanie celého čísla od používateľa", "code": "cislo = @@(input(\"Zadaj číslo: \"))", "mode": "code", "h": ["2cf712ec"]}, {"id": "q24", "n": 24, "sec": "B", "kind": "fill", "prompt": "Cyklus, ktorý prebehne 5-krát", "code": "for i in @@(5):", "mode": "code", "h": ["6541f1e1"]}, {"id": "q25", "n": 25, "sec": "B", "kind": "fill", "prompt": "Pridanie prvku na koniec zoznamu", "code": "zoznam.@@(\"jablko\")", "mode": "code", "h": ["62720661"]}, {"id": "q26", "n": 26, "sec": "B", "kind": "fill", "prompt": "Otvorenie súboru na zápis (prepíše obsah)", "code": "with open(\"data.txt\", \"@@\") as f:", "mode": "code", "h": ["53a0b7d3"]}, {"id": "q27", "n": 27, "sec": "B", "kind": "fill", "prompt": "Náhodné celé číslo od 1 do 6", "code": "import random\nhod = random.@@(1, 6)", "mode": "code", "h": ["1c7e9419"]}, {"id": "q28", "n": 28, "sec": "B", "kind": "mc", "prompt": "Ktorý dátový typ je nemenný – po vytvorení sa nedá meniť?", "code": null, "mode": "out", "h": ["85c410b6"], "options": ["list", "dict", "tuple", "set"]}, {"id": "q29", "n": 29, "sec": "B", "kind": "mc", "prompt": "Akú hodnotu vždy vráti funkcia input()?", "code": null, "mode": "out", "h": ["51cabf09"], "options": ["číslo (int)", "reťazec (str)", "desatinné číslo (float)", "to, čo používateľ napíše, v správnom type"]}, {"id": "q30", "n": 30, "sec": "C", "kind": "out", "prompt": "StringVar – set a get", "code": "meno = tk.StringVar(value=\"Anna\")\nmeno.set(\"Peter\")\nprint(meno.get())", "mode": "out", "h": ["cd447a97"]}, {"id": "q31", "n": 31, "sec": "C", "kind": "out", "prompt": "IntVar – zmena hodnoty", "code": "pocet = tk.IntVar(value=4)\npocet.set(pocet.get() + 1)\nprint(pocet.get())", "mode": "out", "h": ["9f525735"]}, {"id": "q32", "n": 32, "sec": "C", "kind": "out", "prompt": "Počet položiek v Listboxe", "code": "zoznam = tk.Listbox(root)\nfor s in [\"R1\", \"R2\", \"R3\"]:\n    zoznam.insert(tk.END, s)\nprint(zoznam.size())", "mode": "out", "h": ["2cce8ba6"]}, {"id": "q33", "n": 33, "sec": "C", "kind": "out", "prompt": "Vkladanie do Listboxu", "code": "lb = tk.Listbox(root)\nlb.insert(tk.END, \"A\")\nlb.insert(0, \"B\")\nprint(lb.get(0))", "mode": "out", "h": ["1f37d75e"]}, {"id": "q34", "n": 34, "sec": "C", "kind": "out", "prompt": "DoubleVar", "code": "v = tk.DoubleVar(value=2.5)\nprint(v.get() * 2)", "mode": "out", "h": ["ac011d78"]}, {"id": "q35", "n": 35, "sec": "C", "kind": "out", "prompt": "Checkbutton – používateľ políčko zaškrtne", "code": "suhlas = tk.IntVar()\ntk.Checkbutton(root, text=\"Súhlasím\", variable=suhlas).pack()\n# ... používateľ políčko zaškrtne ...\nprint(suhlas.get())", "mode": "out", "h": ["713096d5"]}, {"id": "q36", "n": 36, "sec": "C", "kind": "out", "prompt": "Radiobutton – používateľ klikne na tretiu možnosť", "code": "volba = tk.StringVar(value=\"a\")\nfor h in [\"a\", \"b\", \"c\"]:\n    tk.Radiobutton(root, text=h, value=h, variable=volba).pack()\n# ... používateľ klikne na \"c\" ...\nprint(volba.get())", "mode": "out", "h": ["d2ac8602"]}, {"id": "q37", "n": 37, "sec": "C", "kind": "out", "prompt": "messagebox – používateľ klikne na Áno", "code": "odpoved = messagebox.askyesno(\"Koniec\", \"Naozaj ukončiť?\")\nprint(odpoved)", "mode": "out", "h": ["39e7434c"]}, {"id": "q38", "n": 38, "sec": "D", "kind": "fill", "prompt": "Vytvorenie hlavného okna", "code": "root = tk.@@()", "mode": "code", "h": ["7bfea0c2"]}, {"id": "q39", "n": 39, "sec": "D", "kind": "fill", "prompt": "Spustenie hlavnej slučky okna", "code": "root.@@()", "mode": "code", "h": ["d1d2dd71"]}, {"id": "q40", "n": 40, "sec": "D", "kind": "fill", "prompt": "Nastavenie veľkosti okna na 400 × 300", "code": "root.@@(\"400x300\")", "mode": "code", "h": ["8ce1233e"]}, {"id": "q41", "n": 41, "sec": "D", "kind": "fill", "prompt": "Tlačidlo po kliknutí zavolá funkciu ulozit", "code": "tk.Button(root, text=\"Uložiť\", @@=ulozit)", "mode": "code", "h": ["6d8d9c68"]}, {"id": "q42", "n": 42, "sec": "D", "kind": "fill", "prompt": "Prepojenie textového poľa s premennou meno", "code": "tk.Entry(root, @@=meno)", "mode": "code", "h": ["770faeb"]}, {"id": "q43", "n": 43, "sec": "D", "kind": "fill", "prompt": "Prepojenie Checkbuttonu s premennou suhlas", "code": "tk.Checkbutton(root, text=\"Súhlasím\", @@=suhlas)", "mode": "code", "h": ["b4ebb0d1"]}, {"id": "q44", "n": 44, "sec": "D", "kind": "fill", "prompt": "Umiestnenie do prvého riadku mriežky", "code": "lbl.grid(@@=0, column=1)", "mode": "code", "h": ["eb848eb2"]}, {"id": "q45", "n": 45, "sec": "D", "kind": "fill", "prompt": "Pole sa roztiahne cez 2 stĺpce", "code": "pole.grid(row=1, column=0, @@=2)", "mode": "code", "h": ["b98958c9"]}, {"id": "q46", "n": 46, "sec": "D", "kind": "fill", "prompt": "Popis sa prilepí k ľavému okraju bunky", "code": "lbl.grid(row=0, column=0, sticky=\"@@\")", "mode": "code", "h": ["f14d9b69"]}, {"id": "q47", "n": 47, "sec": "D", "kind": "fill", "prompt": "Tlačidlá sa uložia vedľa seba zľava", "code": "btn.pack(side=tk.@@)", "mode": "code", "h": ["7efa3e88"]}, {"id": "q48", "n": 48, "sec": "D", "kind": "fill", "prompt": "Rámec sa roztiahne na celú šírku okna", "code": "ramec.pack(@@=tk.X)", "mode": "code", "h": ["59baa0ef"]}, {"id": "q49", "n": 49, "sec": "D", "kind": "fill", "prompt": "Rámec s rámikom a nadpisom", "code": "udaje = tk.@@(root, text=\"Údaje\")", "mode": "code", "h": ["cde1a430"]}, {"id": "q50", "n": 50, "sec": "D", "kind": "fill", "prompt": "Combobox je v module", "code": "vyber = @@.Combobox(root, values=[\"A\", \"B\"])", "mode": "code", "h": ["8e34f68a"]}, {"id": "q51", "n": 51, "sec": "D", "kind": "fill", "prompt": "Do Comboboxu sa nedá písať, len vyberať", "code": "vyber = ttk.Combobox(root, values=TYPY, state=\"@@\")", "mode": "code", "h": ["e2163af2"]}, {"id": "q52", "n": 52, "sec": "D", "kind": "fill", "prompt": "Listbox posúva posuvník", "code": "lb.config(yscrollcommand=sb.@@)", "mode": "code", "h": ["92faf60d"]}, {"id": "q53", "n": 53, "sec": "D", "kind": "fill", "prompt": "Posuvník posúva Listbox", "code": "sb.config(command=lb.@@)", "mode": "code", "h": ["c3810950"]}, {"id": "q54", "n": 54, "sec": "D", "kind": "fill", "prompt": "Zistenie indexu vybranej položky v Listboxe", "code": "index = lb.@@()", "mode": "code", "h": ["12a1ca69"]}, {"id": "q55", "n": 55, "sec": "D", "kind": "fill", "prompt": "Funkcia sa zavolá po stlačení klávesu Enter", "code": "pole.bind(\"<@@>\", pridaj)", "mode": "code", "h": ["b0d69c7e"]}, {"id": "q56", "n": 56, "sec": "D", "kind": "fill", "prompt": "Funkcia sa zavolá po kliknutí pravým tlačidlom myši (Windows)", "code": "lb.bind(\"<@@>\", ukaz_menu)", "mode": "code", "h": ["6849cc63"]}, {"id": "q57", "n": 57, "sec": "D", "kind": "fill", "prompt": "Funkcia sa zavolá pri každom uvoľnení klávesu počas písania", "code": "pole.bind(\"<@@>\", pocitaj_znaky)", "mode": "code", "h": ["7190cb4a"]}, {"id": "q58", "n": 58, "sec": "D", "kind": "fill", "prompt": "Získanie celého obsahu widgetu Text", "code": "obsah = text.get(\"@@\", tk.END)", "mode": "code", "h": ["377aab8a"]}, {"id": "q59", "n": 59, "sec": "D", "kind": "fill", "prompt": "Pridanie rozbaľovacieho menu Súbor do lišty", "code": "menubar.add_@@(label=\"Súbor\", menu=menu_subor)", "mode": "code", "h": ["879f930e"]}, {"id": "q60", "n": 60, "sec": "D", "kind": "fill", "prompt": "Pripojenie lišty menu k oknu", "code": "root.config(@@=menubar)", "mode": "code", "h": ["ca33b57b"]}, {"id": "q61", "n": 61, "sec": "D", "kind": "fill", "prompt": "Otázka s tlačidlami Áno / Nie, ktorá vráti True alebo False", "code": "messagebox.@@(\"Koniec\", \"Naozaj ukončiť?\")", "mode": "code", "h": ["7a6420fa"]}, {"id": "q62", "n": 62, "sec": "D", "kind": "fill", "prompt": "Okno s chybovou správou", "code": "messagebox.@@(\"Chyba\", \"Zadaj číslo!\")", "mode": "code", "h": ["40b08ecb"]}, {"id": "q63", "n": 63, "sec": "D", "kind": "fill", "prompt": "Dialóg na výber súboru, ktorý chceme otvoriť", "code": "cesta = filedialog.@@()", "mode": "code", "h": ["2ba02f6d"]}, {"id": "q64", "n": 64, "sec": "D", "kind": "fill", "prompt": "Dialóg na výber farby", "code": "farba = colorchooser.@@()", "mode": "code", "h": ["58a7c4f4"]}, {"id": "q65", "n": 65, "sec": "D", "kind": "word", "prompt": "Funkcia naviazaná cez bind dostane pri zavolaní jeden argument – objekt @@ (napíš slovensky alebo anglicky).", "code": null, "mode": "word", "h": ["bb161b88", "1492cb31", "b3d59803"]}, {"id": "q66", "n": 66, "sec": "E", "kind": "mc", "prompt": "Čo sa stane, ak napíšeme command=ulozit() so zátvorkami?", "code": "tk.Button(root, text=\"Uložiť\", command=ulozit())", "mode": "out", "h": ["101dac02"], "options": ["funkcia sa zavolá po každom kliknutí dvakrát", "funkcia sa zavolá hneď pri vytváraní tlačidla, nie po kliknutí", "nič, zátvorky nevadia", "tlačidlo sa nezobrazí"]}, {"id": "q67", "n": 67, "sec": "E", "kind": "mc", "prompt": "Čo sa stane, keď v jednom kontajneri použijeme pack aj grid?", "code": null, "mode": "out", "h": ["323e612f"], "options": ["nič, oba spôsoby sa dajú kombinovať", "prvky sa zobrazia dvakrát", "program skončí chybou TclError", "grid automaticky nahradí pack"]}, {"id": "q68", "n": 68, "sec": "E", "kind": "mc", "prompt": "Prečo musí okno tk.Tk() vzniknúť skôr ako premenná StringVar?", "code": null, "mode": "out", "h": ["74d54748"], "options": ["premenná potrebuje poznať nadpis okna", "premenná sa viaže na interpreter Tcl, ktorý vzniká až spolu s oknom", "inak sa premenná vytvorí len na čítanie", "nemusí, poradie je ľubovoľné"]}, {"id": "q69", "n": 69, "sec": "E", "kind": "mc", "prompt": "Čo vráti colorchooser.askcolor(), keď používateľ vyberie farbu?", "code": null, "mode": "out", "h": ["799b803a"], "options": ["iba reťazec, napr. '#ff0000'", "dvojicu: hodnoty RGB a reťazec, napr. ((255, 0, 0), '#ff0000')", "číslo od 0 do 255", "objekt Color"]}, {"id": "q70", "n": 70, "sec": "E", "kind": "mc", "prompt": "Čo robí root.mainloop()?", "code": null, "mode": "out", "h": ["6d83f971"], "options": ["vykreslí okno raz a program skončí", "opakuje celý program od začiatku", "čaká na udalosti (kliky, klávesy) a spracúva ich, kým sa okno nezatvorí", "vytvorí hlavné okno"]}]};
+const LIMIT_SEC = 40 * 60;
+const KEY = "opak-py-tk-v1";
+
+//<core>
+function norm(s, mode) {
+  s = String(s).normalize("NFD").replace(/[̀-ͯ]/g, "");
+  s = s.replace(/[“”„"‚‘’`]/g, "'");
+  if (mode === "code") {
+    s = s.replace(/\s+/g, "");
+    s = s.replace(/^'+|'+$/g, "");
+    return s;
+  }
+  s = s.trim().replace(/\s+/g, " ");
+  if (mode === "word") s = s.toLowerCase();
+  return s;
+}
+function fnv(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+function check(q, val, salt) {
+  if (val == null || String(val).trim() === "") return false;
+  return q.h.includes(fnv(salt + "|" + q.id + "|" + norm(val, q.mode)));
+}
+//</core>
+
+const $ = (id) => document.getElementById(id);
+let state = { meno: "", trieda: "", start: null, answers: {}, done: false, score: null };
+
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = Object.assign(state, s); } catch (e) {}
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+}
+function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const quiz = $("quiz");
+  let html = "";
+  DATA.sections.forEach(sec => {
+    html += `<section class="sec"><div class="sec-head"><span class="letter">${sec.id}</span><h2>${esc(sec.title)}</h2><span class="cnt">${sec.count} b</span></div><p class="sec-desc">${esc(sec.desc)}</p>`;
+    DATA.questions.filter(q => q.sec === sec.id).forEach(q => {
+      html += `<div class="q" id="box-${q.id}"><div class="q-head"><span class="num">${q.n}</span><span class="q-title">${q.kind === "word" ? "Doplň slovo" : esc(q.prompt)}</span></div>`;
+      if (q.kind === "out") {
+        html += `<div class="out-grid"><pre class="code">${esc(q.code)}</pre><div><div class="out-label">VÝSTUP</div><input data-q="${q.id}" spellcheck="false" autocomplete="off"></div></div>`;
+      } else if (q.kind === "fill") {
+        const parts = q.code.split("@@");
+        html += `<pre class="code">${esc(parts[0])}<input data-q="${q.id}" spellcheck="false" autocomplete="off">${esc(parts[1])}</pre>`;
+      } else if (q.kind === "word") {
+        const parts = q.prompt.split("@@");
+        html += `<div class="word">${esc(parts[0])}<input data-q="${q.id}" spellcheck="false" autocomplete="off">${esc(parts[1])}</div>`;
+      } else if (q.kind === "mc") {
+        if (q.code) html += `<pre class="code" style="margin-bottom:10px">${esc(q.code)}</pre>`;
+        const opts = q.options.map((o, i) => ({ o, i }));
+        for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+        html += `<div class="opts">` + opts.map(({ o, i }) =>
+          `<label class="opt"><input type="radio" name="${q.id}" value="${esc(o)}" data-q="${q.id}"><span>${esc(o)}</span></label>`).join("") + `</div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</section>`;
+  });
+  quiz.innerHTML = html;
+
+  quiz.querySelectorAll("input[data-q]").forEach(inp => {
+    const id = inp.dataset.q;
+    if (inp.type === "radio") {
+      if (state.answers[id] === inp.value) { inp.checked = true; inp.closest(".opt").classList.add("sel"); }
+      inp.addEventListener("change", () => {
+        state.answers[id] = inp.value;
+        quiz.querySelectorAll(`input[name="${id}"]`).forEach(r => r.closest(".opt").classList.toggle("sel", r.checked));
+        changed();
+      });
+    } else {
+      inp.value = state.answers[id] || "";
+      fit(inp);
+      inp.addEventListener("input", () => { state.answers[id] = inp.value; fit(inp); changed(); });
+    }
+  });
+  updateProgress();
+}
+
+function fit(inp) {
+  if (!inp.closest("pre")) return;
+  inp.style.width = Math.max(6, inp.value.length + 2) + "ch";
+}
+
+function changed() { save(); updateProgress(); }
+
+function updateProgress() {
+  let n = 0;
+  DATA.questions.forEach(q => {
+    const a = state.answers[q.id];
+    const ok = a != null && String(a).trim() !== "";
+    if (ok) n++;
+    const box = $("box-" + q.id);
+    if (box) box.classList.toggle("answered", ok);
+  });
+  $("prog-txt").textContent = `${n} / ${DATA.questions.length}`;
+  $("prog-fill").style.width = (100 * n / DATA.questions.length) + "%";
+}
+
+let tick = null;
+function startTimer() {
+  const step = () => {
+    const left = Math.max(0, LIMIT_SEC - Math.floor((Date.now() - state.start) / 1000));
+    const m = Math.floor(left / 60), s = left % 60;
+    $("timer").textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    $("timer").classList.toggle("low", left <= 300);
+    if (left <= 0) finish(true);
+  };
+  step();
+  tick = setInterval(step, 1000);
+}
+
+function begin() {
+  const meno = $("meno").value.trim(), trieda = $("trieda").value.trim();
+  if (!meno || !trieda) { $("start-msg").textContent = "Vyplň meno a triedu."; return; }
+  state.meno = meno; state.trieda = trieda; state.start = Date.now();
+  save();
+  showQuiz();
+}
+
+function showQuiz() {
+  $("meno").value = state.meno; $("trieda").value = state.trieda;
+  $("meno").disabled = $("trieda").disabled = true;
+  $("intro").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  $("finish-wrap").classList.remove("hidden");
+  $("bar").classList.remove("hidden");
+  render();
+  startTimer();
+}
+
+function finish(auto) {
+  if (state.done) return;
+  if (!auto) {
+    const empty = DATA.questions.filter(q => !state.answers[q.id] || !String(state.answers[q.id]).trim()).length;
+    const txt = empty ? `Nevyplnených otázok: ${empty}. Naozaj chceš test odovzdať?` : "Naozaj chceš test odovzdať?";
+    if (!confirm(txt)) return;
+  }
+  clearInterval(tick);
+  let score = 0;
+  DATA.questions.forEach(q => { if (check(q, state.answers[q.id], DATA.salt)) score++; });
+  state.done = true; state.score = score; state.end = Date.now(); auto && (state.auto = true);
+  save();
+  showResult();
+}
+
+function showResult() {
+  $("meno").value = state.meno; $("trieda").value = state.trieda;
+  $("meno").disabled = $("trieda").disabled = true;
+  $("intro").classList.add("hidden");
+  $("finish-wrap").classList.add("hidden");
+  $("btn-finish-top").classList.add("hidden");
+  $("bar").classList.remove("hidden");
+  if (!$("quiz").innerHTML) render();
+  $("quiz").classList.remove("hidden");
+  $("quiz").querySelectorAll("input").forEach(i => i.disabled = true);
+  const total = DATA.questions.length;
+  $("res-score").textContent = `${state.score} / ${total}`;
+  const mins = Math.min(40, Math.ceil(((state.end || Date.now()) - state.start) / 60000));
+  $("res-who").textContent = `${state.meno} · ${state.trieda} · ${new Date(state.end || Date.now()).toLocaleString("sk-SK")} · ${mins} min`;
+  $("res-note").textContent = state.auto ? "Čas vypršal, test sa odovzdal automaticky." : "Test je odovzdaný. Výsledok ukáž vyučujúcemu.";
+  $("timer").textContent = "Koniec";
+  $("timer").classList.remove("low");
+  $("result").classList.remove("hidden");
+  window.scrollTo({ top: $("result").offsetTop - 70, behavior: "smooth" });
+}
+
+$("st-q").textContent = DATA.questions.length;
+$("st-p").textContent = DATA.questions.length;
+$("btn-start").addEventListener("click", begin);
+$("btn-finish").addEventListener("click", () => finish(false));
+$("btn-finish-top").addEventListener("click", () => finish(false));
+
+load();
+if (state.done) showResult();
+else if (state.start) showQuiz();
+</script>
+</body>
+</html>
